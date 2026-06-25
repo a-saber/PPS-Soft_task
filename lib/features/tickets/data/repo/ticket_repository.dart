@@ -1,37 +1,35 @@
+import '../../../../core/utils/enums.dart';
+import '../models/ticket_history_model.dart';
+import '../models/ticket_model.dart';
 
-
-import 'package:dartz/dartz.dart';
-import 'package:pps_soft_task/core/failure/failure_model.dart';
-
-import '../../../../core/local_db/enums.dart';
-import '../../../../core/models/ticket_history_model.dart';
-import '../../../../core/models/ticket_model.dart';
-
+/// Contract the presentation layer (cubits) depends on. Cubits never know
+/// SQflite exists — they only know this interface. This is what lets us
+/// unit test cubits with a fake/mock repository instead of a real DB.
 abstract class TicketRepository {
-  Future<Either<FailureModel, List<TicketModel>>> getAllTickets();
+  Future<List<TicketModel>> getAllTickets();
 
-  Future<Either<FailureModel, TicketModel?>> getTicketById(int id);
+  Future<TicketModel?> getTicketById(int id);
 
-  Future<Either<FailureModel, TicketModel>> createTicket({
+  Future<TicketModel> createTicket({
     required String subject,
     required String description,
     required TicketPriority priority,
     required TicketCategory category,
   });
 
-  Future<Either<FailureModel, Unit>> updateTicketFields(
+  Future<void> updateTicketFields(
     TicketModel ticket, {
     String? subject,
     String? description,
     TicketPriority? priority,
   });
 
-  Future<Either<FailureModel, Unit>> changeStatus(TicketModel ticket, TicketStatus newStatus);
+  Future<void> changeStatus(TicketModel ticket, TicketStatus newStatus);
 
-  Future<Either<FailureModel, Unit>> deleteTicket(int id);
+  Future<void> deleteTicket(int id);
 
-  Future<Either<FailureModel, List<TicketHistoryModel>>> getHistory(int ticketId);
+  Future<List<TicketHistoryModel>> getHistory(int ticketId);
 
   /// Bonus feature: exports all tickets to a JSON file and returns its path.
-  Future<Either<FailureModel, String>> exportTicketsToJson();
+  Future<String> exportTicketsToJson();
 }

@@ -1,41 +1,66 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:get/get.dart';
-import 'package:pps_soft_task/core/cache/cache_helper.dart';
-import 'package:pps_soft_task/core/services/service_locator.dart';
-import 'package:pps_soft_task/core/theme/theme_helper.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'core/helper/app_router.dart';
+import 'core/helper/injector.dart';
 import 'core/theme/app_theme.dart';
-import 'core/translation/translation_helper.dart';
+import 'core/translations/app_localizations.dart';
+import 'features/dashboard/presentation/cubit/dashboard_cubit.dart';
+import 'features/settings/presentation/cubit/locale_cubit.dart';
+import 'features/settings/presentation/cubit/theme_cubit.dart';
+import 'features/tickets/data/repo/ticket_repository.dart';
+import 'features/tickets/presentation/cubit/ticket_list/ticket_list_cubit.dart';
 
-void main() async{
-  WidgetsFlutterBinding.ensureInitialized();
-  ServiceLocator.setupLocator();
-  await CacheHelper.init();
-  runApp(const MyApp());
+void main() {
+  runApp(const HelpDeskApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class HelpDeskApp extends StatelessWidget {
+  const HelpDeskApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      translations: TranslationHelper(),
-      locale: TranslationHelper.resolveInitialLocale(),
-      fallbackLocale: TranslationHelper.fallbackLocale,
-      supportedLocales: TranslationHelper.supportedLocales,
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
+    final TicketRepository ticketRepository = Injector.instance.ticketRepository;
 
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
-      themeMode: ThemeHelper.resolveInitialThemeMode(),
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<TicketRepository>.value(value: ticketRepository),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => ThemeCubit()),
+          BlocProvider(create: (_) => LocaleCubit()),
+          // Long-lived, app-level cubits. Screen-scoped cubits (form/detail)
+          // are provided closer to where they're used instead.
+          BlocProvider(create: (_) => DashboardCubit(ticketRepository: ticketRepository)),
+          BlocProvider(create: (_) => TicketListCubit(ticketRepository: ticketRepository)),
+        ],
+        child: Builder(
+          builder: (context) {
+            final themeMode = context.watch<ThemeCubit>().state.themeMode;
+            final locale = context.watch<LocaleCubit>().state.locale;
+
+            return MaterialApp(
+              title: 'Help Desk',
+              debugShowCheckedModeBanner: false,
+              themeMode: themeMode,
+              theme: AppTheme.light,
+              darkTheme: AppTheme.dark,
+              locale: locale,
+              supportedLocales: const [Locale('en'), Locale('ar')],
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              initialRoute: AppRoutes.dashboard,
+              onGenerateRoute: AppRouter.onGenerateRoute,
+            );
+          },
+        ),
+      ),
     );
   }
 }
-
-
