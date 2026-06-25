@@ -50,4 +50,25 @@ abstract class TranslationsKeys {
   static const String invalidNumber = 'invalidNumber';
   static const String valueTooSmall = 'valueTooSmall';
   static const String valueTooLarge = 'valueTooLarge';
+
+
+  // ---------------------------------------------------------------------
+  // Ticket / Status / Priority / Category
+  // ---------------------------------------------------------------------
+  static const String open = 'open';
+  static const String inProgress = 'inProgress';
+  static const String closed = 'closed';
+
+  static const String low = 'low';
+  static const String medium = 'medium';
+  static const String high = 'high';
+
+  static const String technical = 'technical';
+  static const String billing = 'billing';
+  static const String general = 'general';
+
+  static const String newestFirst = 'newestFirst';
+  static const String oldestFirst = 'oldestFirst';
+
+
 }
